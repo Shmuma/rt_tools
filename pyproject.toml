@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "rt-tools"
+version = "0.1.0"
+description = ""
+authors = ["Max Lapan <max.lapan@gmail.com>"]
+readme = "README.md"
+packages = [{include = "rt_tools"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.scripts]
+cue_gen = 'rt_tools.scripts.cue_gen:main'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
