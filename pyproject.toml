@@ -8,6 +8,7 @@ packages = [{include = "rt_tools"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+cueparser = "^1.3.1"
 
 [tool.poetry.scripts]
 cue_gen = 'rt_tools.scripts.cue_gen:main'
