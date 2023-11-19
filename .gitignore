@@ -1,3 +1,4 @@
 .idea
 *.cue
 __pycache__
+htmlcov
