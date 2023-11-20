@@ -37,6 +37,16 @@ def test_titles_prepend_mode():
     ]
 
 
+def test_titles_prepend_duplicates():
+    gen = titles.TitlesGenerator(titles.ComposersMode.Prepend)
+    assert list(gen.add_track(1, "Bach", "Concerto - I. Allegro")) == [
+        "Bach",
+        "Concerto",
+        "1. I. Allegro"
+    ]
+    assert list(gen.add_track(2, "Bach", "Concerto - II. Adagio")) == ["2. II. Adagio"]
+
+
 def test_group_performers():
     assert list(titles.group_performers(["p1", "p1"])) == ["p1"]
     assert list(titles.group_performers(["p1", "p1", "p2"])) == [

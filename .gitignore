@@ -2,3 +2,4 @@
 *.cue
 __pycache__
 htmlcov
+.coverage

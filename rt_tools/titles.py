@@ -41,13 +41,13 @@ class TitlesGenerator:
             yield composer
             self._composer = composer
         piece, part = split_piece_part(title)
-        if piece is not None:
+        if piece is not None and piece != self._piece:
             if not separator_shown:
                 if self._piece is None or self._piece != piece:
                     yield ""
             yield piece
             self._piece = piece
-        else:
+        elif piece is None:
             self._piece = None
         yield f"{num}. {part}"
 
