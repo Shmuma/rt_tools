@@ -14,7 +14,7 @@ TRACK_OUTPUT = "%performer% - %title%"
 PathCue = tt.Tuple[pathlib.Path, CueSheet]
 
 
-class GenModes(enum.Enum):
+class GenMode(enum.Enum):
     Full = 'full'
     Titles = 'titles'
     Logs = 'logs'
@@ -44,6 +44,19 @@ def generate_titles(cue: CueSheet, composers_mode: ComposersMode) -> tt.Generato
         yield "[b]Исполнители[/b]:"
         yield from group_performers(perfs)
 
+
+def generate_logs(cue_path: pathlib.Path, cue: CueSheet) -> tt.Generator[str, None, None]:
+    yield '[spoiler="Лог создания рипа"][pre]'
+    log_path = cue_path.with_suffix(".log")
+    yield log_path.read_text()
+    yield '[/pre][/spoiler]'
+    yield ''
+
+    yield '[spoiler="Содержание индексной карты (.CUE)"][pre]'
+    yield cue_path.read_text()
+    yield '[/pre][/spoiler]'
+
+
 def get_section_name(idx: int, path: pathlib.Path) -> str:
     # if path contains dir name, use dir name, otherwise just index
     if len(path.parts) > 1:
@@ -51,21 +64,30 @@ def get_section_name(idx: int, path: pathlib.Path) -> str:
     return f"CD{idx}"
 
 
-def generate_output(mode: str, paths_cues: tt.List[PathCue],
+def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
                     composers_mode: ComposersMode) -> tt.Generator[str, None, None]:
     for idx, (path, cue) in enumerate(paths_cues, start=1):
         section_name = get_section_name(idx, path)
-        yield f'[spoiler="{section_name} - [:]"]'
-        if mode == 'titles':
+        length_part = ""
+        if mode != GenMode.Logs:
+            length_part = " - [:]"
+        yield f'[spoiler="{section_name}{length_part}"]'
+        if mode == GenMode.Titles:
             yield from generate_titles(cue, composers_mode=composers_mode)
+        elif mode == GenMode.Full:
+            yield from generate_titles(cue, composers_mode=composers_mode)
+            yield ''
+            yield from generate_logs(path, cue)
+        elif mode == GenMode.Logs:
+            yield from generate_logs(path, cue)
         yield '[/spoiler]'
         yield ""
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mode", choices=GenModes.values(), default=GenModes.Titles.value,
-                        help="Mode of generation, default=" + GenModes.Titles.value)
+    parser.add_argument("-m", "--mode", choices=GenMode.values(), default=GenMode.Titles.value,
+                        help="Mode of generation, default=" + GenMode.Titles.value)
     parser.add_argument("-c", "--composers", choices=ComposersMode.values(),
                         default=ComposersMode.Prepend.value,
                         help="Mode of composers generation, default=" + ComposersMode.Prepend.value)
@@ -82,7 +104,7 @@ def main() -> int:
             for f in sorted(in_path.glob("**/*.cue")):
                 paths_cues.append(load_cue(f))
 
-    for l in generate_output(args.mode, paths_cues, composers_mode=ComposersMode(args.composers)):
+    for l in generate_output(GenMode(args.mode), paths_cues, composers_mode=ComposersMode(args.composers)):
         print(l)
     return 0
 
