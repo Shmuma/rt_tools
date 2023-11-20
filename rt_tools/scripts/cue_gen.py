@@ -59,6 +59,7 @@ def generate_output(mode: str, paths_cues: tt.List[PathCue],
         if mode == 'titles':
             yield from generate_titles(cue, composers_mode=composers_mode)
         yield '[/spoiler]'
+        yield ""
 
 
 def main() -> int:
@@ -77,6 +78,9 @@ def main() -> int:
         in_path = pathlib.Path(in_name)
         if in_path.is_file():
             paths_cues.append(load_cue(in_path))
+        elif in_path.is_dir():
+            for f in sorted(in_path.glob("**/*.cue")):
+                paths_cues.append(load_cue(f))
 
     for l in generate_output(args.mode, paths_cues, composers_mode=ComposersMode(args.composers)):
         print(l)
