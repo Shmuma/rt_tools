@@ -13,9 +13,11 @@ class ComposersMode(enum.Enum):
 
 
 def split_piece_part(title: str) -> tt.Tuple[tt.Optional[str], str]:
-    parts = title.split(" - ", maxsplit=1)
+    parts = title.split(": ", maxsplit=1)
     if len(parts) == 1:
-        return None, title
+        parts = title.split(" - ", maxsplit=1)
+        if len(parts) == 1:
+            return None, title
     return parts[0], parts[1]
 
 
