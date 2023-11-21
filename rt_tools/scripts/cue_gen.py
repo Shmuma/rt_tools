@@ -32,9 +32,9 @@ def load_cue(cue_path: pathlib.Path) -> PathCue:
     return cue_path, cue
 
 
-def generate_titles(cue: CueSheet, composers_mode: ComposersMode) -> tt.Generator[str, None, None]:
+def generate_titles(cue: CueSheet, composers_mode: ComposersMode, separator: tt.Optional[str]) -> tt.Generator[str, None, None]:
     perfs = []
-    titles_gen = TitlesGenerator(composers_mode)
+    titles_gen = TitlesGenerator(composers_mode, separator=separator)
     for track in cue.tracks:
         perfs.append(track.performer)
         yield from titles_gen.add_track(track.number, track.songwriter, track.title)
@@ -65,7 +65,7 @@ def get_section_name(idx: int, path: pathlib.Path) -> str:
 
 
 def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
-                    composers_mode: ComposersMode) -> tt.Generator[str, None, None]:
+                    composers_mode: ComposersMode, separator: tt.Optional[str]) -> tt.Generator[str, None, None]:
     for idx, (path, cue) in enumerate(paths_cues, start=1):
         section_name = get_section_name(idx, path)
         length_part = ""
@@ -73,9 +73,9 @@ def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
             length_part = " - [:]"
         yield f'[spoiler="{section_name}{length_part}"]'
         if mode == GenMode.Titles:
-            yield from generate_titles(cue, composers_mode=composers_mode)
+            yield from generate_titles(cue, composers_mode=composers_mode, separator=separator)
         elif mode == GenMode.Full:
-            yield from generate_titles(cue, composers_mode=composers_mode)
+            yield from generate_titles(cue, composers_mode=composers_mode, separator=separator)
             yield ''
             yield from generate_logs(path, cue)
         elif mode == GenMode.Logs:
@@ -92,6 +92,7 @@ def main() -> int:
                         default=ComposersMode.Prepend.value,
                         help="Mode of composers generation, default=" + ComposersMode.Prepend.value)
     parser.add_argument("-o", "--output", help="Name of the output file. If not given, use stdout")
+    parser.add_argument("--sep", help="Optional separator of title parts, default=detect")
     parser.add_argument("input", nargs="+", help="Directory or CUE file to process")
     args = parser.parse_args()
 
@@ -104,7 +105,9 @@ def main() -> int:
             for f in sorted(in_path.glob("**/*.cue")):
                 paths_cues.append(load_cue(f))
 
-    for l in generate_output(GenMode(args.mode), paths_cues, composers_mode=ComposersMode(args.composers)):
+    for l in generate_output(GenMode(args.mode), paths_cues,
+                             composers_mode=ComposersMode(args.composers),
+                             separator=args.sep):
         print(l)
     return 0
 
