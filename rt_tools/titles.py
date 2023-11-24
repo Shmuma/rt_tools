@@ -12,10 +12,7 @@ class ComposersMode(enum.Enum):
         return tuple(p.value for p in cls)
 
 
-def split_piece_part(title: str, separator: tt.Optional[str] = None) -> tt.Tuple[tt.Optional[str], str]:
-    separators = (", ", ": ", " - ")
-    if separator is not None:
-        separators = (separator, )
+def split_piece_part(title: str, separators: tt.List[str]) -> tt.Tuple[tt.Optional[str], str]:
     for sep in separators:
         parts = title.split(sep, maxsplit=1)
         if len(parts) == 2:
@@ -24,9 +21,11 @@ def split_piece_part(title: str, separator: tt.Optional[str] = None) -> tt.Tuple
 
 
 class TitlesGenerator:
-    def __init__(self, composers_mode: ComposersMode, separator: tt.Optional[str] = None):
+    DEFAULT_SEPARATORS = (", ", ": ", " - ")
+
+    def __init__(self, composers_mode: ComposersMode, separators: tt.List[str]):
         self._composers_mode = composers_mode
-        self._separator = separator
+        self._separators = separators if separators else self.DEFAULT_SEPARATORS
         self._composer = None
         self._piece = None
 
@@ -45,7 +44,7 @@ class TitlesGenerator:
                 yield ""
             yield composer
             self._composer = composer
-        piece, part = split_piece_part(title, separator=self._separator)
+        piece, part = split_piece_part(title, separators=self._separators)
         if piece is not None and piece != self._piece:
             if not separator_shown:
                 if self._piece is None or self._piece != piece:
