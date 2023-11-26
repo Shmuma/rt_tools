@@ -1,12 +1,14 @@
 """
 Utility to generate rutracker classical music release from CUE files
 """
+import datetime
 import enum
 import argparse
 import pathlib
 import typing as tt
 from rt_tools.cueparser import CueSheet
 from rt_tools.titles import ComposersMode, TitlesGenerator, group_performers
+from rt_tools.durations import get_flac_duration, duration_to_min_sec
 
 HEADER_OUTPUT = "%performer% - %title%\n%file%\n%tracks%"
 TRACK_OUTPUT = "%performer% - %title%"
@@ -65,12 +67,23 @@ def get_section_name(idx: int, path: pathlib.Path) -> str:
 
 
 def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
-                    composers_mode: ComposersMode, separators: tt.List[str]) -> tt.Generator[str, None, None]:
+                    composers_mode: ComposersMode, separators: tt.List[str],
+                    calculate_duration: bool = False) -> tt.Generator[str, None, None]:
+    total_duration = datetime.timedelta()
     for idx, (path, cue) in enumerate(paths_cues, start=1):
         section_name = get_section_name(idx, path)
         length_part = ""
+        duration = None
+        if calculate_duration:
+            flac_path = path.with_suffix(".flac")
+            duration = get_flac_duration(flac_path)
+            total_duration += duration
         if mode != GenMode.Logs:
-            length_part = " - [:]"
+            if duration is None:
+                length_part = " - [:]"
+            else:
+                min, sec = duration_to_min_sec(duration)
+                length_part = f" - [{min}:{sec:02}]"
         yield f'[spoiler="{section_name}{length_part}"]'
         if mode == GenMode.Titles:
             yield from generate_titles(cue, composers_mode=composers_mode, separators=separators)
@@ -83,6 +96,13 @@ def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
         yield '[/spoiler]'
         yield ""
 
+    if calculate_duration:
+        min, sec = duration_to_min_sec(total_duration)
+        hour = 0
+        if min > 60:
+            hour = min // 60
+            min %= 60
+        yield f"Total duration: {hour}:{min:02}:{sec:02}"
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -91,9 +111,10 @@ def main() -> int:
     parser.add_argument("-c", "--composers", choices=ComposersMode.values(),
                         default=ComposersMode.Prepend.value,
                         help="Mode of composers generation, default=" + ComposersMode.Prepend.value)
-    parser.add_argument("-o", "--output", help="Name of the output file. If not given, use stdout")
     parser.add_argument("--sep", action='append', default=[],
                         help="Optional separator of title parts, default=detect")
+    parser.add_argument("--duration", action='store_true', default=False,
+                        help="Use ffprobe to get duration of flac file")
     parser.add_argument("input", nargs="+", help="Directory or CUE file to process")
     args = parser.parse_args()
 
@@ -108,7 +129,8 @@ def main() -> int:
 
     for l in generate_output(GenMode(args.mode), paths_cues,
                              composers_mode=ComposersMode(args.composers),
-                             separators=args.sep):
+                             separators=args.sep,
+                             calculate_duration=args.duration):
         print(l)
     return 0
 
