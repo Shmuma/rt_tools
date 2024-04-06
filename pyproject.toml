@@ -14,6 +14,7 @@ pytest-cov = "^4.1.0"
 
 [tool.poetry.scripts]
 cue_gen = 'rt_tools.scripts.cue_gen:main'
+trk_gen = 'rt_tools.scripts.trk_gen:main'
 
 [build-system]
 requires = ["poetry-core"]

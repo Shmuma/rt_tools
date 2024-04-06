@@ -23,3 +23,13 @@ def duration_to_min_sec(duration: datetime.timedelta) -> tt.Tuple[int, int]:
     """
     total_sec = duration.total_seconds()
     return int(total_sec // 60), int(total_sec % 60)
+
+
+def duration_to_hms(duration: datetime.timedelta) -> tt.Tuple[int, int, int]:
+    min, sec = duration_to_min_sec(duration)
+    hour = 0
+    if min > 60:
+        hour = min // 60
+        min %= 60
+    return hour, min, sec
+
