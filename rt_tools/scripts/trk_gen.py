@@ -48,13 +48,13 @@ def generate_dir(dir: pathlib.Path, calc_duration: bool = False) -> datetime.tim
 
     ac_log = dir / "audiochecker.log"
     if ac_log.exists():
-        print('[spoiler="Лог проверки качества"][pre]')
+        print('\n[spoiler="Лог проверки качества"][pre]')
         print(ac_log.read_text())
-        print('[/pre][/spoiler]\n')
+        print('[/pre][/spoiler]')
 
     dr_files = list(dir.glob("dr14*.txt"))
     if dr_files:
-        print('[spoiler="Динамический отчет (dr14-tmeter)"][pre]')
+        print('\n[spoiler="Динамический отчет (dr14-tmeter)"][pre]')
         print(dr_files[0].read_text())
         print('[/pre][/spoiler]')
     print('[/spoiler]\n')
