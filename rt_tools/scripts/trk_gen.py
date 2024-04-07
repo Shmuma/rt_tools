@@ -39,7 +39,7 @@ def generate_dir(dir: pathlib.Path, calc_duration: bool = False) -> datetime.tim
     titles_gen = TitlesGenerator(ComposersMode.Prepend, separators=[", ", ": ", "- "])
     print(f'[spoiler="{dir.name}{length_part}"]')
     for idx, f in enumerate(files, start=1):
-        name = f.name
+        name = f.stem
         v = name.split(".", maxsplit=1)
         if len(v) > 1:
             name = v[1].strip()
