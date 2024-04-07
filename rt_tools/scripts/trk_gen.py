@@ -46,6 +46,8 @@ def generate_dir(dir: pathlib.Path, calc_duration: bool = False) -> datetime.tim
         for l in titles_gen.add_track(idx, "", name):
             print(l)
 
+    print("\n[b]Исполнители[/b]:\n")
+
     ac_log = dir / "audiochecker.log"
     if ac_log.exists():
         print('\n[spoiler="Лог проверки качества"][pre]')
