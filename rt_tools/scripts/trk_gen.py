@@ -9,6 +9,9 @@ from rt_tools.durations import get_flac_duration, duration_to_min_sec, duration_
 from rt_tools.titles import ComposersMode, TitlesGenerator
 
 
+DEFAULT_SEPARATORS = (", ", ": ", "- ")
+
+
 def iterate_dirs(path: pathlib.Path) -> tt.List[pathlib.Path]:
     """
     Find all paths which looks like directories with flac files
@@ -21,7 +24,11 @@ def iterate_dirs(path: pathlib.Path) -> tt.List[pathlib.Path]:
     return list(sorted(set(paths)))
 
 
-def generate_dir(dir: pathlib.Path, calc_duration: bool = False) -> datetime.timedelta:
+def generate_dir(
+        dir: pathlib.Path, calc_duration: bool = False,
+        separators: tt.List[str] = DEFAULT_SEPARATORS,
+        performers: bool = True,
+) -> datetime.timedelta:
     res = datetime.timedelta()
     files = []
 
@@ -36,7 +43,7 @@ def generate_dir(dir: pathlib.Path, calc_duration: bool = False) -> datetime.tim
         min, sec = duration_to_min_sec(res)
         length_part = f" - [{min}:{sec:02}]"
 
-    titles_gen = TitlesGenerator(ComposersMode.Prepend, separators=[", ", ": ", "- "])
+    titles_gen = TitlesGenerator(ComposersMode.Prepend, separators=separators)
     print(f'[spoiler="{dir.name}{length_part}"]')
     for idx, f in enumerate(files, start=1):
         name = f.stem
@@ -46,7 +53,8 @@ def generate_dir(dir: pathlib.Path, calc_duration: bool = False) -> datetime.tim
         for l in titles_gen.add_track(idx, "", name):
             print(l)
 
-    print("\n[b]Исполнители[/b]:\n")
+    if performers:
+        print("\n[b]Исполнители[/b]:\n")
 
     ac_log = dir / "audiochecker.log"
     if ac_log.exists():
@@ -68,6 +76,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--duration", action='store_true', default=False,
                         help="Use ffprobe to get duration of flac files")
+    parser.add_argument("-s", "--separator", help="Use this string as separator of songs, default=" + str(DEFAULT_SEPARATORS))
+    parser.add_argument("--no-performers", action='store_true', default=False, help="Disable performers section")
     parser.add_argument("input", nargs="+", help="Directory to process")
     args = parser.parse_args()
     duration = datetime.timedelta()
@@ -78,8 +88,13 @@ def main() -> int:
         dirs_list.extend(iterate_dirs(in_path))
     dirs_list.sort()
 
+    separators = DEFAULT_SEPARATORS
+    if args.separator:
+        separators = [args.separator]
+
     for dir in dirs_list:
-        duration += generate_dir(dir, calc_duration=args.duration)
+        duration += generate_dir(dir, calc_duration=args.duration,
+                                 separators=separators, performers=not args.no_performers)
 
     if args.duration:
         hour, min, sec = duration_to_hms(duration)
