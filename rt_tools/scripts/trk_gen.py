@@ -24,6 +24,22 @@ def iterate_dirs(path: pathlib.Path) -> tt.List[pathlib.Path]:
     return list(sorted(set(paths)))
 
 
+def get_rip_log(dir: pathlib.Path) -> tt.Optional[pathlib.Path]:
+    for f in dir.glob("*.log"):
+        if f.name == "audiochecker.log":
+            continue
+        return f
+    return None
+
+
+def get_log_text(path: pathlib.Path) -> str:
+    try:
+        res = path.read_text()
+    except UnicodeDecodeError:
+        res = path.read_text("utf-16")
+    return res
+
+
 def generate_dir(
         dir: pathlib.Path, calc_duration: bool = False,
         separators: tt.List[str] = DEFAULT_SEPARATORS,
@@ -62,10 +78,16 @@ def generate_dir(
         print(ac_log.read_text())
         print('[/pre][/spoiler]')
 
+    rip_log = get_rip_log(dir)
+    if rip_log is not None:
+        print('\n[spoiler="Лог создания рипа"][pre]')
+        print(get_log_text(rip_log))
+        print('[/pre][/spoiler]')
+
     dr_files = list(dir.glob("dr14*.txt"))
     if dr_files:
         print('\n[spoiler="Динамический отчет (dr14-tmeter)"][pre]')
-        print(dr_files[0].read_text())
+        print(dr_files[0].read_text()[1:])
         print('[/pre][/spoiler]')
     print('[/spoiler]\n')
 
