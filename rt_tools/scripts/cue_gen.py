@@ -89,6 +89,7 @@ def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
                 min, sec = duration_to_min_sec(duration)
                 length_part = f" - [{min}:{sec:02}]"
         yield f'[spoiler="{section_name}{length_part}"]'
+
         if mode == GenMode.Titles:
             yield from generate_titles(cue, composers_mode=composers_mode, separators=separators)
         elif mode == GenMode.Full:
@@ -97,6 +98,14 @@ def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
             yield from generate_logs(path, cue)
         elif mode == GenMode.Logs:
             yield from generate_logs(path, cue)
+
+        for dr14_path in path.parent.glob("dr14*.txt"):
+            yield '[spoiler="Динамический отчет (DR)"][pre]'
+            yield dr14_path.read_text()[1:-1]
+            yield '[/pre][/spoiler]'
+            yield ""
+            break
+
         yield '[/spoiler]'
         yield ""
 
