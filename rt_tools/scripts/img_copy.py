@@ -3,13 +3,14 @@ Utility copies front covers into separate directory
 """
 import pathlib
 import argparse
+import shutil
 
 DEFAULT_FILE_NAME = "Front.jpeg"
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--output", help="Name of directory to store front covers")
+    parser.add_argument("-o", "--output", help="Name of directory to store front covers", required=True)
     parser.add_argument("-n", "--name", help="Name of the file to copy, default=" + DEFAULT_FILE_NAME,
                         default=DEFAULT_FILE_NAME)
     parser.add_argument("input", nargs="+", help="Directory or cue path to process")
@@ -24,7 +25,19 @@ def main() -> int:
             for f in sorted(in_path.glob("**/*.cue")):
                 dirs.append(f.parent)
 
-    print(dirs)
+    out_path = pathlib.Path(args.output)
+    if not out_path.exists():
+        out_path.mkdir(parents=True)
+
+    for dir in dirs:
+        f_path = dir / args.name
+        if not f_path.exists():
+            print("Skipping " + str(dir))
+        else:
+            d_name = dir.name.split(" ")[0]
+            d_path = out_path / (d_name + ".jpeg")
+            shutil.copy(f_path, d_path)
+            print(f"{f_path} -> {d_path}")
 
     return 0
 
