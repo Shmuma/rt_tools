@@ -70,9 +70,12 @@ def get_section_name(idx: int, path: pathlib.Path) -> str:
     return f"CD{idx}"
 
 
-def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
-                    composers_mode: ComposersMode, separators: tt.List[str],
-                    calculate_duration: bool = False) -> tt.Generator[str, None, None]:
+def generate_output(
+        mode: GenMode, paths_cues: tt.List[PathCue],
+        composers_mode: ComposersMode, separators: tt.List[str],
+        calculate_duration: bool = False,
+        front_urls: tt.Optional[tt.List[str]] = None,
+) -> tt.Generator[str, None, None]:
     total_duration = datetime.timedelta()
     for idx, (path, cue) in enumerate(paths_cues, start=1):
         section_name = get_section_name(idx, path)
@@ -89,6 +92,10 @@ def generate_output(mode: GenMode, paths_cues: tt.List[PathCue],
                 min, sec = duration_to_min_sec(duration)
                 length_part = f" - [{min}:{sec:02}]"
         yield f'[spoiler="{section_name}{length_part}"]'
+
+        if front_urls is not None:
+            url = front_urls[idx-1]
+            yield f"[img=right]{url}[/img]"
 
         if mode == GenMode.Titles:
             yield from generate_titles(cue, composers_mode=composers_mode, separators=separators)
@@ -128,6 +135,7 @@ def main() -> int:
                         help="Optional separator of title parts, default=detect")
     parser.add_argument("--duration", action='store_true', default=False,
                         help="Use ffprobe to get duration of flac file")
+    parser.add_argument("--fronts", help="Optional filename with url of front images to be inserted")
     parser.add_argument("input", nargs="+", help="Directory or CUE file to process")
     args = parser.parse_args()
 
@@ -140,10 +148,17 @@ def main() -> int:
             for f in sorted(in_path.glob("**/*.cue")):
                 paths_cues.append(load_cue(f))
 
+    front_urls = None
+    if args.fronts is not None:
+        p = pathlib.Path(args.fronts)
+        front_urls = [u for u in p.read_text().splitlines() if u]
+
+
     for l in generate_output(GenMode(args.mode), paths_cues,
                              composers_mode=ComposersMode(args.composers),
                              separators=args.sep,
-                             calculate_duration=args.duration):
+                             calculate_duration=args.duration,
+                             front_urls=front_urls):
         print(l)
     return 0
 
