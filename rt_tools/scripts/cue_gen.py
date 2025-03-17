@@ -124,6 +124,7 @@ def generate_output(
             min %= 60
         yield f"Total duration: {hour}:{min:02}:{sec:02}"
 
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", choices=GenMode.values(), default=GenMode.Titles.value,
@@ -152,7 +153,6 @@ def main() -> int:
     if args.fronts is not None:
         p = pathlib.Path(args.fronts)
         front_urls = [u for u in p.read_text().splitlines() if u]
-
 
     for l in generate_output(GenMode(args.mode), paths_cues,
                              composers_mode=ComposersMode(args.composers),
