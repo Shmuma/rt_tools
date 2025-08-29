@@ -54,7 +54,11 @@ def generate_titles(cue: CueSheet, composers_mode: ComposersMode, separators: tt
 def generate_logs(cue_path: pathlib.Path, cue: CueSheet) -> tt.Generator[str, None, None]:
     yield '[spoiler="Лог создания рипа"][pre]'
     log_path = cue_path.with_suffix(".log")
-    yield log_path.read_text()
+    try:
+        text = log_path.read_text()
+    except UnicodeDecodeError:
+        text = log_path.read_text(encoding='utf-16')
+    yield text
     yield '[/pre][/spoiler]'
     yield ''
 
