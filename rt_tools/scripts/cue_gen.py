@@ -39,11 +39,14 @@ def generate_titles(cue: CueSheet, composers_mode: ComposersMode, separators: tt
     titles_gen = TitlesGenerator(composers_mode, separators=separators)
     for track in cue.tracks:
         performer = track.performer
+        composer = track.songwriter
         if performer is not None and ';' in performer:
-            _, performer = performer.split(';', maxsplit=1)
+            comp, performer = performer.split(';', maxsplit=1)
             performer = performer.strip()
+            if composer is None:
+                composer = comp
         perfs.append(performer)
-        yield from titles_gen.add_track(track.number, track.songwriter, track.title)
+        yield from titles_gen.add_track(track.number, composer, track.title)
 
     if perfs:
         yield ""
