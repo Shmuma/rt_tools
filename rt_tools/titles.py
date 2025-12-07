@@ -21,7 +21,7 @@ def split_piece_part(title: str, separators: tt.List[str]) -> tt.Tuple[tt.Option
 
 
 class TitlesGenerator:
-    DEFAULT_SEPARATORS = (", ", ": ", " - ")
+    DEFAULT_SEPARATORS = (": ", " - ")
 
     def __init__(self, composers_mode: ComposersMode, separators: tt.List[str]):
         self._composers_mode = composers_mode

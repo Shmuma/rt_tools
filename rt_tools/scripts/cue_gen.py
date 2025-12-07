@@ -27,6 +27,7 @@ class GenMode(enum.Enum):
 
 
 def load_cue(cue_path: pathlib.Path) -> PathCue:
+    #print(cue_path)
     cue = CueSheet()
     cue.setOutputFormat(HEADER_OUTPUT, TRACK_OUTPUT)
     cue.setData(cue_path.read_text('utf-8'))
@@ -37,8 +38,11 @@ def load_cue(cue_path: pathlib.Path) -> PathCue:
 def generate_titles(cue: CueSheet, composers_mode: ComposersMode, separators: tt.List[str]) -> tt.Generator[str, None, None]:
     perfs = []
     titles_gen = TitlesGenerator(composers_mode, separators=separators)
+    global_performer = cue.performer
     for track in cue.tracks:
         performer = track.performer
+        if performer is None and global_performer is not None:
+            performer = global_performer
         composer = track.songwriter
         if performer is not None and ';' in performer:
             comp, performer = performer.split(';', maxsplit=1)
